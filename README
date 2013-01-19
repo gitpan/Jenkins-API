@@ -1,0 +1,54 @@
+Jenkins-API
+
+This module is a wrapper around the Jenkins API.  
+
+It provides a simple set of methods for talking
+to the Jenkins API.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Jenkins::API
+
+You can also look for information at:
+
+    github's issue list (report bugs here)
+        https://github.com/colinnewell/Jenkins-API/issues
+
+    Jenkins CI - the program this module communicates with.
+        http://jenkins-ci.org/
+
+
+Once this module hits CPAN you'll be able to use these resources too.
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Jenkins-API
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Jenkins-API
+
+    Search CPAN
+        http://search.cpan.org/dist/Jenkins-API/
+
+
+LICENSE AND COPYRIGHT
+
+Copyright (C) 2012 Colin Newell
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
