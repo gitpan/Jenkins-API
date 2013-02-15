@@ -9,13 +9,11 @@ Jenkins::API - A wrapper around the Jenkins API
 
 =head1 VERSION
 
-Version 0.02
-
-=head1 METHODS
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 has '_client' => (is => 'ro', default => sub {
     require REST::Client;
@@ -40,6 +38,8 @@ This is a wrapper around the Jenkins API.
 
     my $success = $jenkins->create_job($project_name, $config_xml);
     ...
+
+=head1 METHODS
 
 =head2 check_jenkins_url
 
@@ -137,6 +137,14 @@ If you need to specify a token you can pass that like this,
 Note that the success response is simply to indicate that the build
 has been scheduled, not that the build has succeeded.
 
+=head2 trigger_build_with_parameters
+
+Trigger a build with parameters,
+
+    $success = $jenkins->trigger_build_with_parameters('Test-Project', { Parameter => 'Value' } );
+
+The method behaves the same way as L<trigger_build>.
+
 =head2 build_queue
 
 This returns the items in the build queue.
@@ -222,12 +230,25 @@ sub delete_project
 
 sub trigger_build
 {
+  my $self = shift;
+  return $self->_trigger_build('build', @_);
+}
+
+sub trigger_build_with_parameters
+{
+  my $self = shift;
+  return $self->_trigger_build('buildWithParameters', @_);
+}
+
+sub _trigger_build
+{
     my $self = shift;
+    my $build_url = shift;
     my $job = shift;
     my $extra_params = shift;
 
     my $uri = URI->new($self->base_url);
-    $uri->path_segments('job', $job, 'build');
+    $uri->path_segments('job', $job, $build_url);
     $uri->query_form($extra_params) if $extra_params;
     $self->_client->GET($uri->as_string);
     return $self->_client->responseCode eq '302';
@@ -393,7 +414,7 @@ L<https://metacpan.org/module/Net::Jenkins>
 
 =item * Task::Jenkins
 
-Libraries for use testing modules on a Jenkins server.
+Libraries to help testing modules on a Jenkins server.
 
 L<https://metacpan.org/module/Task::Jenkins>
 
@@ -401,10 +422,13 @@ L<https://metacpan.org/module/Task::Jenkins>
 
 =head1 ACKNOWLEDGEMENTS
 
+Birmingham Perl Mongers for feedback before I released this to CPAN.
+
+With thanks to Nick Hu for adding the trigger_build_with_parameters method.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2012-3 Colin Newell.
+Copyright 2012-2013 Colin Newell.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
