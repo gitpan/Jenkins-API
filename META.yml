@@ -28,12 +28,8 @@ requires:
   REST::Client: 0
   URI: 0
 resources:
-  bugtracker:
-    web: https://github.com/colinnewell/Jenkins-API/issues
+  bugtracker: https://github.com/colinnewell/Jenkins-API/issues
   homepage: https://github.com/colinnewell/Jenkins-API
   license: http://dev.perl.org/licenses/
-  repository:
-    type: git
-    url: git://github.com/colinnewell/Jenkins-API.git
-    web: https://github.com/colinnewell/Jenkins-API
-version: 0.03
+  repository: https://github.com/colinnewell/Jenkins-API
+version: 0.04
