@@ -2,6 +2,7 @@ package Jenkins::API;
 
 use Moose;
 use JSON;
+use MIME::Base64;
 
 =head1 NAME
 
@@ -9,17 +10,27 @@ Jenkins::API - A wrapper around the Jenkins API
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
+
+has base_url => (is => 'ro', isa => 'Str', required => 1);
+has api_key => (is => 'ro', isa => 'Str', required => 0);
+has api_pass => (is => 'ro', isa => 'Str', required => 0);
 
 has '_client' => (is => 'ro', default => sub {
+    my $self = shift;
     require REST::Client;
-    REST::Client->new();
+    my $client = REST::Client->new();
+    $client->setHost($self->base_url);
+    if (defined($self->api_key) and defined($self->api_pass)) {
+        $client->addHeader("Authorization", "Basic " .
+                   encode_base64($self->api_key . ':' . $self->api_pass)); 
+    }
+    return $client;
 });
-has base_url => (is => 'ro', isa => 'Str', required => 1);
 
 =head1 SYNOPSIS
 
@@ -38,6 +49,26 @@ This is a wrapper around the Jenkins API.
 
     my $success = $jenkins->create_job($project_name, $config_xml);
     ...
+
+=head2 ATTRIBUTES
+
+Specify these attributes to the constructor of the C<Jenkins::API> object
+if necessary.
+
+=head2 base_url
+
+This is the base url for your jenkins installation.  This is commonly 
+running on port 8080 so it's often something like http://jenkins:8080
+
+=head2 api_key
+
+This is the username for the basic authentication if you have it turned on.
+
+If you don't, don't specify it.
+
+=head2 api_pass
+
+The password for basic auth.
 
 =head1 METHODS
 
@@ -214,7 +245,7 @@ sub create_job
     $uri->path_segments('createItem');
     $uri->query_form( name => $name );
     # curl -XPOST http://moe:8080/createItem?name=test -d@config.xml -v -H Content-Type:text/xml
-    $self->_client->POST($uri->as_string, $job_config, { 'Content-Type' => 'text/xml' });
+    $self->_client->POST($uri->path_query, $job_config, { 'Content-Type' => 'text/xml' });
     return $self->_client->responseCode() eq '200';
 }
 
@@ -224,7 +255,7 @@ sub delete_project
 
     my $uri = URI->new($self->base_url);
     $uri->path_segments('job', $name, 'doDelete');
-    $self->_client->POST($uri->as_string, undef, { 'Content-Type' => 'text/xml' });
+    $self->_client->POST($uri->path_query, undef, { 'Content-Type' => 'text/xml' });
     return $self->_client->responseCode() eq '302';
 }
 
@@ -250,7 +281,7 @@ sub _trigger_build
     my $uri = URI->new($self->base_url);
     $uri->path_segments('job', $job, $build_url);
     $uri->query_form($extra_params) if $extra_params;
-    $self->_client->GET($uri->as_string);
+    $self->_client->GET($uri->path_query);
     return $self->_client->responseCode eq '302';
 }
 
@@ -263,7 +294,7 @@ sub project_config
     my $uri = URI->new($self->base_url);
     $uri->path_segments('job', $job, 'config.xml');
     $uri->query_form($extra_params) if $extra_params;
-    $self->_client->GET($uri->as_string);
+    $self->_client->GET($uri->path_query);
     return $self->_client->responseContent;
 }
 
@@ -275,14 +306,14 @@ sub set_project_config
 
     my $uri = URI->new($self->base_url);
     $uri->path_segments('job', $job, 'config.xml');
-    $self->_client->POST($uri->as_string, $config, { 'Content-Type' => 'text/xml' });
+    $self->_client->POST($uri->path_query, $config, { 'Content-Type' => 'text/xml' });
     return $self->_client->responseCode() eq '200';
 }
 
 sub check_jenkins_url
 {
     my $self = shift;
-    $self->_client->GET($self->base_url);
+    $self->_client->GET('/');
     return $self->_client->responseCode() eq '200'
         && $self->_client->responseHeader('X-Jenkins');
 }
@@ -316,7 +347,8 @@ sub _json_api
     my $uri = URI->new($self->base_url);
     $uri->path_segments(@$bits, @$uri_parts);
     $uri->query_form($extra_params) if $extra_params;
-    $self->_client->GET($uri->as_string);
+
+    $self->_client->GET($uri->path_query);
     die 'Invalid response' unless $self->_client->responseCode eq '200';
     # NOTE: my server returns UTF8, if this turns out to be a broken
     # assumption read the Content-Type header.
@@ -426,9 +458,11 @@ Birmingham Perl Mongers for feedback before I released this to CPAN.
 
 With thanks to Nick Hu for adding the trigger_build_with_parameters method.
 
+Alex Kulbiy for the auth support and David Steinbrunner for some Makefile love.
+
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2012-2013 Colin Newell.
+Copyright 2012-2014 Colin Newell.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published

@@ -24,6 +24,7 @@ no_index:
 requires:
   File::ShareDir: 0
   JSON: 0
+  MIME::Base64: 0
   Moose: 0
   REST::Client: 0
   URI: 0
@@ -32,4 +33,4 @@ resources:
   homepage: https://github.com/colinnewell/Jenkins-API
   license: http://dev.perl.org/licenses/
   repository: https://github.com/colinnewell/Jenkins-API
-version: 0.04
+version: 0.05
